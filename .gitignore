@@ -1,3 +1,7 @@
+# DDEV #
+.ddev
+wp-config-ddev.php
+
 # WordPress #
 ############
 wp-config-local.php
