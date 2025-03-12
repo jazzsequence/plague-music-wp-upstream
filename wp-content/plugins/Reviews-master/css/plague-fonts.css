@@ -1,0 +1,146 @@
+
+@charset "UTF-8";
+
+@font-face {
+  font-family: "plague-fonts";
+  src:url("../font/plague-fonts.eot");
+  src:url("../font/plague-fonts.eot?#iefix") format("embedded-opentype"),
+    url("../font/plague-fonts.ttf") format("truetype"),
+    url("../font/plague-fonts.svg#plague-fonts") format("svg"),
+    url("../font/plague-fonts.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+
+}
+
+[data-icon]:before {
+  font-family: "plague-fonts" !important;
+  content: attr(data-icon);
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[class^="plague-i-"]:before,
+[class*=" plague-i-"]:before {
+  font-family: "plague-fonts" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.plague-i-myspace:before {
+  content: "\e000";
+}
+
+.plague-i-soundcloud:before {
+  content: "\e001";
+}
+
+.plague-i-spotify:before {
+  content: "\e002";
+}
+
+.plague-i-alonetone:before {
+  content: "\e003";
+}
+
+.plague-i-amazonmp3:before {
+  content: "\e004";
+}
+
+.plague-i-bandcamp:before {
+  content: "\e005";
+}
+
+.plague-i-emusic:before {
+  content: "\e006";
+}
+
+.plague-i-archive:before {
+  content: "\e007";
+}
+
+.plague-i-itunes:before {
+  content: "\e008";
+}
+
+.plague-i-napster:before {
+  content: "\e009";
+}
+
+.plague-i-rhapsody:before {
+  content: "\e00a";
+}
+
+.plague-i-rpm:before {
+  content: "\e00b";
+}
+
+.plague-i-reverbnation:before {
+  content: "\e00c";
+}
+
+.plague-i-zune:before {
+  content: "\e00d";
+}
+
+.plague-i-star:before {
+  content: "\e00e";
+}
+
+.plague-i-microphone:before {
+  content: "\e00f";
+}
+
+.plague-i-music:before {
+  content: "\e010";
+}
+
+.plague-i-cart:before {
+  content: "\e011";
+}
+
+.plague-i-link:before {
+  content: "\e012";
+}
+
+.plague-i-facebook:before {
+  content: "\e013";
+}
+
+.plague-i-google:before {
+  content: "\e014";
+}
+
+.plague-i-youtube:before {
+  content: "\e015";
+}
+
+.plague-i-twitter:before {
+  content: "\e016";
+}
+
+.plague-i-headphones:before {
+  content: "\e017";
+}
+
+.plague-i-download:before {
+  content: "\e018";
+}
+
+.plague-i-quote:before {
+  content: "\e019";
+}
+
