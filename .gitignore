@@ -1,6 +1,7 @@
 # DDEV #
 .ddev
 wp-config-ddev.php
+wp-content/mu-plugins/ddev-local-config.php
 
 # WordPress #
 ############
