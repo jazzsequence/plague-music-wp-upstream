@@ -13,6 +13,11 @@ if [ -z "$TERMINUS_SITE" ] || [ -z "$TERMINUS_ENV" ]; then
 	exit 1
 fi
 
+if [ -z "$BRANCH_NAME" ]; then
+    echo "BRANCH_NAME environment variable must be set"
+    exit 1
+fi
+
 ###
 # Create a new environment for this particular test run.
 ###
@@ -30,6 +35,12 @@ BASH_DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Switch to git mode for pushing the files up.
 ###
 terminus --yes connection:set $TERMINUS_SITE.$TERMINUS_ENV git
+
+###
+# Fetch and checkout the branch
+###
+git fetch origin $BRANCH_NAME
+git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
 
 ###
 # Push the upstream branch to the environment.
