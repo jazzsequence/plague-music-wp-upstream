@@ -73,7 +73,7 @@ if ( ! defined( 'WP_DEBUG' ) ) {
 	define('WP_DEBUG', false);
 }
 
-define( 'DEFAULT_THEME', 'plaguemusic' );
+define( 'WP_DEFAULT_THEME', 'plaguemusic' );
 
 /* That's all, stop editing! Happy Pressing. */
 
