@@ -38,37 +38,10 @@ jobs:
           git config --global user.email "robot@dev.null"
           git config --global user.name "GitHub Actions"
           git config --global core.fileMode false
-
-      - name: Install Behat & Mink Dependencies
+    
+      - name: Install Behat and Mink via Composer
         run: |
-          # Create a directory for Behat extensions
-          mkdir -p $HOME/behat-extensions && cd $HOME/behat-extensions
-  
-          # Install Behat
-          curl -L -o behat.phar https://github.com/Behat/Behat/releases/latest/download/behat.phar
-          chmod +x behat.phar
-          sudo mv behat.phar /usr/local/bin/behat
-  
-          # Install Behat Mink Extension
-          curl -L -o MinkExtension.phar https://github.com/Behat/MinkExtension/releases/latest/download/MinkExtension.phar
-          chmod +x MinkExtension.phar
-  
-          # Install Mink
-          curl -L -o Mink.phar https://github.com/minkphp/Mink/releases/latest/download/Mink.phar
-          chmod +x Mink.phar
-  
-          # Install Mink drivers
-          curl -L -o MinkSelenium2Driver.phar https://github.com/minkphp/MinkSelenium2Driver/releases/latest/download/MinkSelenium2Driver.phar
-          chmod +x MinkSelenium2Driver.phar
-  
-          curl -L -o MinkGoutteDriver.phar https://github.com/minkphp/MinkGoutteDriver/releases/latest/download/MinkGoutteDriver.phar
-          chmod +x MinkGoutteDriver.phar
-  
-          # Ensure all files are executable
-          chmod +x *.phar
-  
-          # Verify Behat installation
-          behat --version
+          composer require --dev behat/behat behat/mink-extension behat/mink-goutte-driver behat/mink-selenium2-driver --no-interaction
 
       - name: Prepare
         env:

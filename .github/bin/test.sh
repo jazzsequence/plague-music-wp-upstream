@@ -20,9 +20,9 @@ if [ -z "$WORDPRESS_ADMIN_USERNAME" ] || [ -z "$WORDPRESS_ADMIN_PASSWORD" ]; the
 	exit 1
 fi
 
-# Manually load Behat and Mink PHAR files via a bootstrap file
-export BEHAT_EXTENSIONS_DIR="$HOME/behat-extensions"
+# Set Behat Parameters
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io"} }}'
 
-# Run Behat with explicit bootstrap file
-cd $SELF_DIRNAME && php "${WORKSPACE_DIR}/.github/tests/bootstrap.php" && behat --config="${WORKSPACE_DIR}/.github/tests/behat.yml" $*
+# Run Behat using Composer-installed version
+cd "$SELF_DIRNAME"
+"${WORKSPACE_DIR}"/vendor/bin/behat --config="${WORKSPACE_DIR}/.github/tests/behat.yml" $*
