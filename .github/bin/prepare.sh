@@ -35,7 +35,7 @@ terminus --yes connection:set $TERMINUS_SITE.$TERMINUS_ENV git
 # Push the upstream branch to the environment.
 ###
 git remote add pantheon $PANTHEON_GIT_URL
-git push -f pantheon $CIRCLE_BRANCH:$TERMINUS_ENV
+git push -f pantheon $BRANCH_NAME:$TERMINUS_ENV
 
 ###
 # Switch to SFTP mode so the site can install plugins and themes.
