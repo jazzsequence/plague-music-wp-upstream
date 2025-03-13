@@ -1,0 +1,35 @@
+name: Validate GitHub Actions Workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/*.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install action-validator
+        run: |
+          # Define the latest version and correct filename format
+          VERSION="v0.6.0"  # Update this if needed
+          FILE_NAME="action-validator_linux_amd64"
+          DOWNLOAD_URL="https://github.com/mpalmer/action-validator/releases/download/${VERSION}/${FILE_NAME}"
+          curl -sSL -o action-validator "$DOWNLOAD_URL"
+
+          # Validate that the file is a valid binary
+          if ! file action-validator | grep -q "ELF"; then
+            echo "Download failed or invalid binary. Exiting."
+            exit 1
+          fi
+
+          # Make executable and move to /usr/local/bin
+          chmod +x action-validator
+          sudo mv action-validator /usr/local/bin/action-validator
+
+      - name: Validate workflows
+        run: |
+          action-validator .github/workflows/*.yml

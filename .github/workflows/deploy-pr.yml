@@ -1,0 +1,99 @@
+name: (Auto) Deploy PR to Pantheon Canary Multidev
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/**'
+      - 'readme.html'
+      - 'README.md'      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+      id-token: write
+      deployments: write
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install SSH Key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: SSH config
+      run: |
+        echo "Host *.drush.in HostKeyAlgorithms +ssh-rsa" >> ~/.ssh/config
+        echo "Host *.drush.in PubkeyAcceptedKeyTypes +ssh-rsa" >> ~/.ssh/config
+        echo "StrictHostKeyChecking no" >> ~/.ssh/config		
+    - name: Install Terminus
+      uses: pantheon-systems/terminus-github-actions@v1
+      with:
+        pantheon-machine-token: ${{ secrets.TERMINUS_TOKEN }}
+    - name: Get Committer Email and Name
+      run: |
+          COMMITTER_EMAIL=$(git log --format='%ae' -n 1 ${{ github.sha }})
+          COMMITTER_NAME=$(git log --format='%an' -n 1 ${{ github.sha }})
+
+          # Configure git defaults
+          git config --global user.email "$COMMITTER_EMAIL"
+          git config --global user.name "$COMMITTER_NAME"
+    - name: Get Canary site
+      env:
+        ORG_UUID: ${{ secrets.ORG_UUID }}
+        UPSTREAM_UUID: ${{ secrets.UPSTREAM_UUID }}
+        CI_BRANCH: ${{ github.ref_name }}
+      run: |
+        CANARY_SITE=$(terminus org:site:list ${ORG_UUID} --format list --upstream ${UPSTREAM_UUID} --field name --tag canary | head -1)
+        CANARY_SITE_LABEL=$(terminus site:info --fields label --format string -- ${CANARY_SITE})
+
+        echo "CANARY_SITE=$CANARY_SITE" >> $GITHUB_ENV
+        echo "CANARY_SITE_LABEL=$CANARY_SITE_LABEL" >> $GITHUB_ENV
+        CANARY_REPO=$(terminus connection:info ${CANARY_SITE}.dev --fields git_url --format list)
+        echo "CANARY_REPO=$CANARY_REPO" >> $GITHUB_ENV
+    - name: Start GitHub Deployment
+      uses: bobheadxi/deployments@v1
+      id: deployment
+      with:
+        step: start
+        token: ${{ github.token }}
+        env: pr-${{ github.event.pull_request.number }}
+        ref: ${{ github.head_ref }}
+    - name: Sync code to site
+      run: |
+        # Setup remote branch connection
+        PR_BRANCH_NAME="pr-${{ github.event.pull_request.number }}" # PR branch name
+        echo "PR_BRANCH_NAME=$PR_BRANCH_NAME" >> $GITHUB_ENV
+        git remote add pantheon $CANARY_REPO
+
+        # Set to git mode
+        if terminus env:info $CANARY_SITE.$PR_BRANCH_NAME > /dev/null 2>&1; then
+          terminus connection:set $CANARY_SITE.$PR_BRANCH_NAME git
+        fi
+
+        git push -u --force pantheon HEAD:refs/heads/$PR_BRANCH_NAME
+
+    - name: Create multidev if needed
+      run: |
+        if ! terminus env:info $CANARY_SITE.$PR_BRANCH_NAME > /dev/null 2>&1; then
+            terminus env:create $CANARY_SITE.dev $PR_BRANCH_NAME
+        else
+            echo "Environment $PR_BRANCH_NAME already exists."
+        fi
+        MULTIDEV_URL=$(echo "https://$PR_BRANCH_NAME-$CANARY_SITE.pantheonsite.io")
+        echo "MULTIDEV_URL=$MULTIDEV_URL" >> "$GITHUB_ENV"
+    - name: Update Deployment Status
+      uses: bobheadxi/deployments@v1
+      if: always()
+      with:
+        step: finish
+        token: ${{ github.token }}
+        status: ${{ job.status }}
+        ref: ${{ github.head_ref }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        env: pr-${{ github.event.pull_request.number }}-${{ env.CANARY_SITE }}
+        env_url: ${{ env.MULTIDEV_URL }}
