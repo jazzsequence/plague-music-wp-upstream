@@ -23,4 +23,4 @@ fi
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io"} }}'
 
 # We expect 'behat' to be in our PATH. Our container symlinks it at /usr/local/bin
-cd $SELF_DIRNAME && behat --config="${WORKSPACE_DIR}/.github/tests/behat.yml $*
+cd $SELF_DIRNAME && behat --config="${WORKSPACE_DIR}/.github/tests/behat.yml" $*
