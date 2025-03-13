@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      TERMINUS_ENV: ci-${{ github.run_id }}
+      TERMINUS_ENV: ci-${{ github.run_number }}
       TERMINUS_SITE: plague-music-canary
       WORDPRESS_ADMIN_USERNAME: pantheon
       WORDPRESS_ADMIN_PASSWORD: ${{ secrets.WORDPRESS_ADMIN_PASSWORD }}
