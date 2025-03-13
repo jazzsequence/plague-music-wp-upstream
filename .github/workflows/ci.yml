@@ -39,37 +39,44 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global core.fileMode false
 
-      - name: Prepare
-        env:
-          BRANCH_NAME: ${{ github.head_ref }}
-        run: ${{ github.workspace }}/.github/bin/prepare.sh
-
-      - name: Install & configure Behat & Mink
+      - name: Install Behat & Mink Dependencies
         run: |
+          # Create a directory for Behat extensions
+          mkdir -p $HOME/behat-extensions && cd $HOME/behat-extensions
+  
           # Install Behat
           curl -L -o behat.phar https://github.com/Behat/Behat/releases/latest/download/behat.phar
           chmod +x behat.phar
           sudo mv behat.phar /usr/local/bin/behat
-          
+
           # Install Behat Mink Extension
-          mkdir -p behat-extensions && cd behat-extensions
           curl -L -o MinkExtension.phar https://github.com/Behat/MinkExtension/releases/latest/download/MinkExtension.phar
           chmod +x MinkExtension.phar
-          sudo mv MinkExtension.phar /usr/local/bin/mink-extension
   
-          # Install Mink & Selenium2Driver (Needed for browser testing)
+          # Install Mink
           curl -L -o Mink.phar https://github.com/minkphp/Mink/releases/latest/download/Mink.phar
           chmod +x Mink.phar
-          sudo mv Mink.phar /usr/local/bin/mink
   
+          # Install Mink drivers
           curl -L -o MinkSelenium2Driver.phar https://github.com/minkphp/MinkSelenium2Driver/releases/latest/download/MinkSelenium2Driver.phar
           chmod +x MinkSelenium2Driver.phar
-          sudo mv MinkSelenium2Driver.phar /usr/local/bin/mink-selenium2-driver
   
-          # Verify installation
+          curl -L -o MinkGoutteDriver.phar https://github.com/minkphp/MinkGoutteDriver/releases/latest/download/MinkGoutteDriver.phar
+          chmod +x MinkGoutteDriver.phar
+  
+          # Ensure they are all executable
+          chmod +x *.phar
+  
+          # Move them to the workspace
+          mv *.phar $HOME/behat-extensions/
+  
+          # Verify Behat installation
           behat --version
-          mink-extension --version
-  
+
+      - name: Prepare
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: ${{ github.workspace }}/.github/bin/prepare.sh
 
       - name: Test
         env:
