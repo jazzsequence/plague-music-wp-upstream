@@ -78,15 +78,39 @@ jobs:
       with:
         github-token: ${{ github.token }}
         script: |
-          const { MULTIDEV_URL, PR_BRANCH_NAME, CANARY_SITE,CANARY_SITE_LABEL } = process.env;
+          const { MULTIDEV_URL, PR_BRANCH_NAME, CANARY_SITE, CANARY_SITE_LABEL } = process.env;
           const doubleDash = (str) => str.replace(/-/g, '--');
           const spaceFix = (str) => str.replace(/ /g, '%20');
           const site = doubleDash(CANARY_SITE);
           const branch = doubleDash(PR_BRANCH_NAME);
           const sitelabel = spaceFix(CANARY_SITE_LABEL);
-          github.rest.issues.createComment({
+          const badgeText = `[![Static Badge](https://img.shields.io/badge/${sitelabel}-${branch}-%23FFDC28?logo=pantheon&logoColor=white)](${MULTIDEV_URL})`;
+  
+          // Get existing PR comments
+          const { data: comments } = await github.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `[![Static Badge](https://img.shields.io/badge/${sitelabel}-${branch}-%23FFDC28?logo=pantheon&logoColor=white)](${MULTIDEV_URL})`,
           });
+  
+          // Look for an existing badge comment
+          const badgeComment = comments.find(comment => comment.body.includes("![Static Badge]"));
+  
+          if (badgeComment) {
+            // Update the existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: badgeComment.id,
+              body: badgeText,
+            });
+          } else {
+            // Create a new comment if no existing badge is found
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: badgeText,
+            });
+          }
+  
