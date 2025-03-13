@@ -1,4 +1,4 @@
-name: (Manual) 0 - Create new Site Instance
+name: (Manual) Create new Site Instance
 on: 
   workflow_dispatch:
     inputs:
