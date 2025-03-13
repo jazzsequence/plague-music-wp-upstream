@@ -50,6 +50,14 @@ jobs:
         echo "CANARY_SITE_LABEL=$CANARY_SITE_LABEL" >> $GITHUB_ENV
         CANARY_REPO=$(terminus connection:info ${CANARY_SITE}.dev --fields git_url --format list)
         echo "CANARY_REPO=$CANARY_REPO" >> $GITHUB_ENV
+    - name: Start GitHub Deployment
+      uses: bobheadxi/deployments@v1
+      id: deployment
+      with:
+        step: start
+        token: ${{ github.token }}
+        env: pr-${{ github.event.pull_request.number }}
+        ref: ${{ github.head_ref }}
     - name: Sync code to site
       run: |
         # Setup remote branch connection
@@ -73,44 +81,14 @@ jobs:
         fi
         MULTIDEV_URL=$(echo "https://$PR_BRANCH_NAME-$CANARY_SITE.pantheonsite.io")
         echo "MULTIDEV_URL=$MULTIDEV_URL" >> "$GITHUB_ENV"
-    - name: Comment on PR
-      uses: actions/github-script@v6
+    - name: Update Deployment Status
+      uses: bobheadxi/deployments@v1
+      if: always()
       with:
-        github-token: ${{ github.token }}
-        script: |
-          const { MULTIDEV_URL, PR_BRANCH_NAME, CANARY_SITE, CANARY_SITE_LABEL } = process.env;
-          const doubleDash = (str) => str.replace(/-/g, '--');
-          const spaceFix = (str) => str.replace(/ /g, '%20');
-          const site = doubleDash(CANARY_SITE);
-          const branch = doubleDash(PR_BRANCH_NAME);
-          const sitelabel = spaceFix(CANARY_SITE_LABEL);
-          const badgeText = `[![Static Badge](https://img.shields.io/badge/${sitelabel}-${branch}-%23FFDC28?logo=pantheon&logoColor=white)](${MULTIDEV_URL})`;
-  
-          // Get existing PR comments
-          const { data: comments } = await github.rest.issues.listComments({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-          });
-  
-          // Look for an existing badge comment
-          const badgeComment = comments.find(comment => comment.body.includes("![Static Badge]"));
-  
-          if (badgeComment) {
-            // Update the existing comment
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: badgeComment.id,
-              body: badgeText,
-            });
-          } else {
-            // Create a new comment if no existing badge is found
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: badgeText,
-            });
-          }
-  
+        step: finish
+        token: ${{ github.token }}
+        status: ${{ job.status }}
+        ref: ${{ github.head_ref }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        env: pr-${{ github.event.pull_request.number }}-${{ env.CANARY_SITE }}
+        env_url: ${{ env.MULTIDEV_URL }}
