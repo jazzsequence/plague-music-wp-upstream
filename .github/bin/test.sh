@@ -20,7 +20,16 @@ if [ -z "$WORDPRESS_ADMIN_USERNAME" ] || [ -z "$WORDPRESS_ADMIN_PASSWORD" ]; the
 	exit 1
 fi
 
+# Manually load Behat and Mink PHAR files
+export BEHAT_EXTENSIONS_DIR="$HOME/behat-extensions"
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io"} }}'
 
-# We expect 'behat' to be in our PATH. Our container symlinks it at /usr/local/bin
+php -d include_path="$BEHAT_EXTENSIONS_DIR" -r '
+require_once "$_SERVER[HOME]/behat-extensions/Mink.phar";
+require_once "$_SERVER[HOME]/behat-extensions/MinkExtension.phar";
+require_once "$_SERVER[HOME]/behat-extensions/MinkSelenium2Driver.phar";
+require_once "$_SERVER[HOME]/behat-extensions/MinkGoutteDriver.phar";
+' || { echo "Failed to load Behat extensions"; exit 1; }
+
+# We expect 'behat' to be in our PATH.
 cd $SELF_DIRNAME && behat --config="${WORKSPACE_DIR}/.github/tests/behat.yml" $*
