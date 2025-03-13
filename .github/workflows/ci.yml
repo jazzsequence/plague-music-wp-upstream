@@ -21,22 +21,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Check if only ignored paths were changed
-        run: |
-          CHANGED_FILES=$(git diff --name-only HEAD~1)
-          echo "Changed files: $CHANGED_FILES"
-  
-          IGNORED_PATHS=".github/|.circleci/|readme.html|README.md"
-  
-          # Check if all changed files are within ignored paths
-          if [[ -n "$CHANGED_FILES" && ! $(echo "$CHANGED_FILES" | grep -vE "^($IGNORED_PATHS)$") ]]; then
-            echo "Only ignored files changed. Skipping CI."
-            exit 78  # Exit code 78 tells GitHub Actions to skip the job
-          fi
-      
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
