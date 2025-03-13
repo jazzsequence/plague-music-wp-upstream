@@ -69,7 +69,6 @@ jobs:
   
           # Verify Behat installation
           behat --version
-    
 
       - name: Prepare
         env:
