@@ -1,0 +1,17 @@
+name: Deploy to Pantheon Canary
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Pantheon
+        uses: stevector-streaming/dtp@0.2.0
+        with:
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          site: plague-music-canary
+          machine_token: ${{ secrets.TERMINUS_TOKEN }}

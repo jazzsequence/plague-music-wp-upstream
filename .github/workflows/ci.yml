@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '.github/**'
+      - 'readme.html'
+      - 'README.md'
 
 jobs:
   test:
