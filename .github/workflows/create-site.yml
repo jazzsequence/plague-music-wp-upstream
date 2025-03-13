@@ -37,7 +37,7 @@ jobs:
     env:
       GITHUB_CONTEXT: ${{ toJson(github) }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install Terminus
       uses: pantheon-systems/terminus-github-actions@main
       with:
