@@ -1,0 +1,23 @@
+name: Validate GitHub Actions Workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/*.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install action-validator
+        run: |
+          curl -LO https://github.com/mpalmer/action-validator/releases/latest/download/action-validator-linux-amd64
+          chmod +x action-validator-linux-amd64
+          sudo mv action-validator-linux-amd64 /usr/local/bin/action-validator
+
+      - name: Validate workflows
+        run: |
+          action-validator .github/workflows/*.yml
