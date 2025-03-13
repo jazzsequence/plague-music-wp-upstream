@@ -25,9 +25,13 @@ jobs:
 
       - name: Check if only ignored paths were changed
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          CHANGED_FILES=$(git diff --name-only HEAD~1)
           echo "Changed files: $CHANGED_FILES"
-          if [[ "$CHANGED_FILES" =~ ^(.github/|readme.html|README.md)$ ]]; then
+  
+          IGNORED_PATHS=".github/|readme.html|README.md"
+  
+          # Check if all changed files are within ignored paths
+          if [[ -n "$CHANGED_FILES" && ! $(echo "$CHANGED_FILES" | grep -vE "^($IGNORED_PATHS)$") ]]; then
             echo "Only ignored files changed. Skipping CI."
             exit 78  # Exit code 78 tells GitHub Actions to skip the job
           fi
