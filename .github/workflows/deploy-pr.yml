@@ -10,6 +10,7 @@ jobs:
       pull-requests: write
       repository-projects: write
       id-token: write
+      deployments: write
     env:
       GITHUB_CONTEXT: ${{ toJson(github) }}
     steps:
