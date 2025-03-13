@@ -3,7 +3,7 @@
 Plugin Name: Plague Artists
 Plugin URI: http://museumthemes.com
 Description: A band and artist profile management plugin for WordPress, brought to you by <a href="http://plaguemusic.com">Plague Music</a>. Part of the Plague Netlabel-in-a-Box.
-Version: 2.0.0
+Version: 2.0.1
 Author: Chris Reynolds
 Author URI: http://chrisreynolds.io/
 License: GPLv3

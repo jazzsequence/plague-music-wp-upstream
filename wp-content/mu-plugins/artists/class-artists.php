@@ -122,35 +122,44 @@ class Plague_Artist {
 		wp_create_nonce( plugin_basename(__FILE__) ) . '" />';
 
 		echo '<p><label for="website_url">' . __( 'Website URL', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="website_url" value="' . mysql_real_escape_string( get_post_meta($post->ID, 'website_url', true) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="website_url" value="' . esc_url( get_post_meta($post->ID, 'website_url', true) ) . '" /></p>';
 
 		echo '<p><label for="facebook_url">' . __( 'Facebook Page URL (full URL)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="facebook_url" value="' . mysql_real_escape_string( get_post_meta($post->ID, 'facebook_url', true) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="facebook_url" value="' . esc_url( get_post_meta($post->ID, 'facebook_url', true) ) . '" /></p>';
 
 		echo '<p><label for="twitter_id">' . __( 'Twitter Name (username only)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="twitter_id" value="' . wp_kses( get_post_meta($post->ID, 'twitter_id', true), array() ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="twitter_id" value="' . esc_attr( get_post_meta($post->ID, 'twitter_id', true) ) . '" /></p>';
 
 		echo '<p><label for="myspace_page">' . __( 'MySpace Page (username/page name only)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="myspace_page" value="' . wp_kses( get_post_meta($post->ID, 'myspace_page', true), array() ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="myspace_page" value="' . esc_attr( get_post_meta($post->ID, 'myspace_page', true) ) . '" /></p>';
 
 		echo '<p><label for="reverbnation_page">' . __( 'ReverbNation Page (page name only)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="reverbnation_page" value="' . wp_kses( get_post_meta($post->ID, 'reverbnation_page', true), array() ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="reverbnation_page" value="' . esc_attr( get_post_meta($post->ID, 'reverbnation_page', true) ) . '" /></p>';
 
 		echo '<p><label for="soundcloud_name">' . __( 'SoundCloud Page (username only)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="soundcloud_name" value="' . wp_kses( get_post_meta($post->ID, 'soundcloud_name', true), array() ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="soundcloud_name" value="' . esc_attr( get_post_meta($post->ID, 'soundcloud_name', true) ) . '" /></p>';
 
 		echo '<p><label for="bandcamp_page">' . __( 'BandCamp Page (full URL)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="bandcamp_page" value="' . mysql_real_escape_string( get_post_meta($post->ID, 'bandcamp_page', true) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="bandcamp_page" value="' . esc_url( get_post_meta($post->ID, 'bandcamp_page', true) ) . '" /></p>';
 
 		echo '<p><label for="alonetone_id">' . __( 'Alonetone Name (username only)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="alonetone_id" value="' . wp_kses( get_post_meta($post->ID, 'alonetone_id', true), array() ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="alonetone_id" value="' . esc_attr( get_post_meta($post->ID, 'alonetone_id', true) ) . '" /></p>';
 
 		echo '<p><label for="rpm_challenge">' . __( 'RPM Challenge page (full URL)', 'plague-artists' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="rpm_challenge" value="' . mysql_real_escape_string( get_post_meta($post->ID, 'rpm_challenge', true) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="rpm_challenge" value="' . esc_url( get_post_meta($post->ID, 'rpm_challenge', true) ) . '" /></p>';
 
 		echo '<p><label for="press">' . __( 'Press', 'plague-artists' ) . '</label><br />' . __( 'Post any reviews here.', 'plague-artists' ) . '<br />';
-		echo wp_kses_post( wp_editor( get_post_meta($post->ID, 'press', true), 'press', array( 'media_buttons' => false, 'teeny' => true, 'quicktags' => false ) ) ) . '</p>';
-
+		$press_content = get_post_meta($post->ID, 'press', true);
+		if (is_string($press_content)) {
+			echo '<div class="wp-editor-container">';
+			wp_editor( wp_kses_post( $press_content ), 'press', array( 'media_buttons' => false, 'teeny' => true, 'quicktags' => false ) );
+			echo '</div>';
+		} else {
+			echo '<div class="wp-editor-container">';
+			wp_editor( '', 'press', array( 'media_buttons' => false, 'teeny' => true, 'quicktags' => false ) );
+			echo '</div>';
+		}
+		echo '</p>';
 	}
 
 	/* When the post is saved, saves our product data */
@@ -189,7 +198,7 @@ class Plague_Artist {
 				return;
 			if ( isset( $_POST[ $meta_key ] ) ) {
 				if ( $type == 'text' ) {
-					$value = wp_kses_post( $_POST[ $meta_key ] );
+					$value = is_string($_POST[ $meta_key ]) ? wp_kses_post( $_POST[ $meta_key ] ) : '';
 				}
 				if ( $type == 'embed' ) {
 					$kses_allowed = array_merge(wp_kses_allowed_html( 'post' ), array('iframe' => array(
@@ -200,10 +209,10 @@ class Plague_Artist {
 						'scrolling' => array(),
 						'frameborder' => array()
 						)));
-					$value = wp_kses( $_POST[ $meta_key ], $kses_allowed );
+					$value = is_string($_POST[ $meta_key ]) ? wp_kses( $_POST[ $meta_key ], $kses_allowed ) : '';
 				}
 				if ( $type == 'url' ) {
-					$value = htmlspecialchars( $_POST[ $meta_key ] );
+					$value = esc_url_raw( $_POST[ $meta_key ] );
 				}
 
 				update_post_meta( $post->ID, $meta_key, $value );

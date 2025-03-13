@@ -235,23 +235,23 @@ class Album_Releases {
 		wp_create_nonce( plugin_basename(__FILE__) ) . '" />';
 
 		echo '<p><label for="bandcamp_url">' . __( 'Bandcamp URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="bandcamp_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'bandcamp_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="bandcamp_url" value="'. esc_attr( get_post_meta($post->ID,'bandcamp_url', true ) ) . '" /></p>';
 		echo '<p><label for="itunes_url">' . __( 'iTunes URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="itunes_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'itunes_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="itunes_url" value="'. esc_attr( get_post_meta($post->ID,'itunes_url', true ) ) . '" /></p>';
 		echo '<p><label for="spotify_url">' . __( 'Spotify URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="spotify_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'spotify_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="spotify_url" value="'. esc_attr( get_post_meta($post->ID,'spotify_url', true ) ) . '" /></p>';
 		echo '<p><label for="amazonmp3_url">' . __( 'AmazonMP3 URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="amazonmp3_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'amazonmp3_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="amazonmp3_url" value="'. esc_attr( get_post_meta($post->ID,'amazonmp3_url', true ) ) . '" /></p>';
 		echo '<p><label for="zune_url">' . __( 'Zune URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="zune_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'zune_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="zune_url" value="'. esc_attr( get_post_meta($post->ID,'zune_url', true ) ) . '" /></p>';
 		echo '<p><label for="emusic_url">' . __( 'eMusic URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="emusic_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'emusic_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="emusic_url" value="'. esc_attr( get_post_meta($post->ID,'emusic_url', true ) ) . '" /></p>';
 		echo '<p><label for="napster_url">' . __( 'Napster URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="napster_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'napster_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="napster_url" value="'. esc_attr( get_post_meta($post->ID,'napster_url', true ) ) . '" /></p>';
 		echo '<p><label for="rhapsody_url">' . __( 'Rhapsody URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="rhapsody_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'rhapsody_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="rhapsody_url" value="'. esc_attr( get_post_meta($post->ID,'rhapsody_url', true ) ) . '" /></p>';
 		echo '<p><label for="reverbnation_buy_url">' . __( 'Reverbnation URL', 'plague-releases' ) . '</label><br />';
-		echo '<input class="widefat" type="text" name="reverbnation_buy_url" value="'. mysql_real_escape_string( get_post_meta($post->ID,'reverbnation_buy_url', true ) ) . '" /></p>';
+		echo '<input class="widefat" type="text" name="reverbnation_buy_url" value="'. esc_attr( get_post_meta($post->ID,'reverbnation_buy_url', true ) ) . '" /></p>';
 	}
 
 	public function rebuild_thumbnail_metabox() {

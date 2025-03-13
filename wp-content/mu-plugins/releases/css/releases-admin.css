@@ -8,11 +8,8 @@
 #menu-posts-plague-release .wp-menu-image:before {
 	font-family: 'plague-fonts'!important;
 	content: "\e010";
-	font-size: 20px;
-	position: relative;
-	left: 5px;
-	top: 4px;
-	text-shadow: 1px 1px 0px #eee;
+	font-size: 1.4em;
+	line-height: 1.2em;
 	color: #aaa;
 }
 #menu-posts-plague-release:hover .wp-menu-image:before {
@@ -20,9 +17,6 @@
 }
 .wp-has-current-submenu#menu-posts-plague-release .wp-menu-image:before {
 	color: #eee;
-}
-.wp-has-current-submenu#menu-posts-plague-release .wp-menu-image:before {
-	text-shadow: 1px 1px 0px #555;
 }
 div#icon-edit.icon32-posts-plague-release {
 	background-image: none;
