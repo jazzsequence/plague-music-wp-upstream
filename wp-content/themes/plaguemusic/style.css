@@ -1,0 +1,24 @@
+/*
+Theme Name: Plague Music
+Theme URI: http://example.com/plaguemusic
+Author: Your Name
+Author URI: http://example.com
+Description: A child theme of Twenty Twenty-Five for the Plague Music project.
+Version: 1.0
+Template: twentytwentyfive
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: custom-background, custom-logo, custom-menu, editor-style, post-formats
+*/
+
+figure.plague-logo {
+	margin: 2em 0;
+}
+
+figure.plague-logo img {
+	max-width: 250px;
+}
+
+figure.plague-pl img {
+    max-width: 150px;
+}

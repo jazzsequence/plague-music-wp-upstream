@@ -1,0 +1,30 @@
+/* 
+ * Editor styles for the Plague Music theme.
+ * This file customizes the appearance of content in the WordPress editor.
+ */
+
+/* Example styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #333;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+ul {
+    list-style-type: disc;
+    margin-left: 20px;
+}
+
+blockquote {
+    border-left: 4px solid #ccc;
+    padding-left: 10px;
+    color: #666;
+    font-style: italic;
+}
