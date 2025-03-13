@@ -3,7 +3,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
-      - '.circleci/**' # Remove after this PR is merged
       - '.github/**'
       - 'readme.html'
       - 'README.md'      
