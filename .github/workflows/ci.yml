@@ -44,12 +44,32 @@ jobs:
           BRANCH_NAME: ${{ github.head_ref }}
         run: ${{ github.workspace }}/.github/bin/prepare.sh
 
-      - name: Install Behat
+      - name: Install & configure Behat & Mink
         run: |
+          # Install Behat
           curl -L -o behat.phar https://github.com/Behat/Behat/releases/latest/download/behat.phar
           chmod +x behat.phar
           sudo mv behat.phar /usr/local/bin/behat
-          behat --version  # Verify installation
+          
+          # Install Behat Mink Extension
+          mkdir -p behat-extensions && cd behat-extensions
+          curl -L -o MinkExtension.phar https://github.com/Behat/MinkExtension/releases/latest/download/MinkExtension.phar
+          chmod +x MinkExtension.phar
+          sudo mv MinkExtension.phar /usr/local/bin/mink-extension
+  
+          # Install Mink & Selenium2Driver (Needed for browser testing)
+          curl -L -o Mink.phar https://github.com/minkphp/Mink/releases/latest/download/Mink.phar
+          chmod +x Mink.phar
+          sudo mv Mink.phar /usr/local/bin/mink
+  
+          curl -L -o MinkSelenium2Driver.phar https://github.com/minkphp/MinkSelenium2Driver/releases/latest/download/MinkSelenium2Driver.phar
+          chmod +x MinkSelenium2Driver.phar
+          sudo mv MinkSelenium2Driver.phar /usr/local/bin/mink-selenium2-driver
+  
+          # Verify installation
+          behat --version
+          mink-extension --version
+  
 
       - name: Test
         env:
