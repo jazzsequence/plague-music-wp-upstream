@@ -48,7 +48,7 @@ jobs:
           curl -L -o behat.phar https://github.com/Behat/Behat/releases/latest/download/behat.phar
           chmod +x behat.phar
           sudo mv behat.phar /usr/local/bin/behat
-
+  
           # Install Behat Mink Extension
           curl -L -o MinkExtension.phar https://github.com/Behat/MinkExtension/releases/latest/download/MinkExtension.phar
           chmod +x MinkExtension.phar
@@ -64,14 +64,12 @@ jobs:
           curl -L -o MinkGoutteDriver.phar https://github.com/minkphp/MinkGoutteDriver/releases/latest/download/MinkGoutteDriver.phar
           chmod +x MinkGoutteDriver.phar
   
-          # Ensure they are all executable
+          # Ensure all files are executable
           chmod +x *.phar
-  
-          # Move them to the workspace
-          mv *.phar $HOME/behat-extensions/
   
           # Verify Behat installation
           behat --version
+    
 
       - name: Prepare
         env:
