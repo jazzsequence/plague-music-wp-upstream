@@ -44,6 +44,13 @@ jobs:
           BRANCH_NAME: ${{ github.head_ref }}
         run: ${{ github.workspace }}/.github/bin/prepare.sh
 
+      - name: Install Behat
+        run: |
+          curl -L -o behat.phar https://github.com/Behat/Behat/releases/latest/download/behat.phar
+          chmod +x behat.phar
+          sudo mv behat.phar /usr/local/bin/behat
+          behat --version  # Verify installation
+
       - name: Test
         env:
           WORKSPACE_DIR: ${{ github.workspace }}
