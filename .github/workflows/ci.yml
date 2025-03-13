@@ -22,6 +22,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Install Terminus
+        uses: pantheon-systems/terminus-github-actions@main
+        with:
+          pantheon-machine-token: ${{ secrets.TERMINUS_TOKEN }}
+
       - name: Set up environment variables
         run: |
           echo "Test site is ${{ env.TERMINUS_SITE }}.${{ env.TERMINUS_ENV }}"
