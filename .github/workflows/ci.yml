@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TERMINUS_ENV: ci-${{ github.run_number }}
+      TERMINUS_SITE: plague-music-canary
+      WORDPRESS_ADMIN_USERNAME: pantheon
+      WORDPRESS_ADMIN_PASSWORD: ${{ secrets.WORDPRESS_ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install Terminus
+        uses: pantheon-systems/terminus-github-actions@main
+        with:
+          pantheon-machine-token: ${{ secrets.TERMINUS_TOKEN }}
+
+      - name: Set up environment variables
+        run: |
+          echo "Test site is ${{ env.TERMINUS_SITE }}.${{ env.TERMINUS_ENV }}"
+          echo "Logging in with a machine token:"
+          terminus auth:login -n --machine-token="${{ secrets.TERMINUS_TOKEN }}"
+          terminus whoami
+          touch $HOME/.ssh/config
+          echo "StrictHostKeyChecking no" >> "$HOME/.ssh/config"
+          git config --global user.email "robot@dev.null"
+          git config --global user.name "GitHub Actions"
+          git config --global core.fileMode false
+    
+      - name: Install Behat and Mink via Composer
+        run: |
+          composer require --dev \
+            behat/behat \
+            behat/mink-extension \
+            behat/mink-goutte-driver:^1.3 \
+            behat/mink-selenium2-driver \
+            fabpot/goutte:^3.3 --no-interaction  
+
+      - name: Prepare
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: ${{ github.workspace }}/.github/bin/prepare.sh
+
+      - name: Test
+        env:
+          WORKSPACE_DIR: ${{ github.workspace }}
+        run: ${{ github.workspace }}/.github/bin/test.sh --strict
+
+      - name: Cleanup
+        env:
+          MULTIDEV_DELETE_PATTERN: ci-
+        run: ${{ github.workspace }}/.github/bin/cleanup.sh
