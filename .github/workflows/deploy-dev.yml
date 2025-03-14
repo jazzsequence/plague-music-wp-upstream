@@ -1,0 +1,57 @@
+name: (Manual) Deploy to Dev
+on:
+  workflow_dispatch:
+    inputs:
+      pantheon_tag:
+        description: 'Deploy to sites tagged:'
+        required: true
+        default: 'all'
+      do_backup:
+        description: 'Create Backup First?'
+        required: true
+        type: choice
+        options: 
+          - 'Yes'
+          - 'No'
+        default: 'No'
+      do_notify:
+        description: 'Notify Slack Deploy Channel?'
+        required: true
+        type: choice
+        options: 
+          - 'Yes'
+          - 'No'
+        default: 'No'
+jobs:
+  build:
+    name: Deploy code to Dev
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+    steps:
+    - uses: actions/checkout@v2
+    # Install Terminus.
+    - name: Install Terminus
+      uses: pantheon-systems/terminus-github-actions@main
+      with:
+        pantheon-machine-token: ${{ secrets.TERMINUS_TOKEN }}
+    - name: Parallel Processing
+      env:
+        ORG_UUID: ${{ secrets.ORG_UUID }}
+        UPSTREAM_UUID: ${{ secrets.UPSTREAM_UUID }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: '#firehose'
+        INPUT_PANTHEON_TAG: ${{ github.event.inputs.pantheon_tag }}
+        DO_BACKUP: ${{ github.event.inputs.do_backup }}
+        DO_NOTIFY: ${{ github.event.inputs.do_notify }}
+      run: |
+        if  [ $INPUT_PANTHEON_TAG == all ]
+        then
+          echo "Deploying to all sites running this upstream."
+          terminus org:site:list $ORG_UUID  --upstream $UPSTREAM_UUID --field name
+          terminus org:site:list $ORG_UUID --format list --upstream $UPSTREAM_UUID --field name | sort -V | parallel --jobs 100 ${{ github.workspace }}/.github/scripts/dev-deploy.sh {}
+        else
+          echo "Deploying to sites with tag: $INPUT_PANTHEON_TAG."
+          terminus org:site:list $ORG_UUID  --upstream $UPSTREAM_UUID --tag $INPUT_PANTHEON_TAG --field name
+          terminus org:site:list $ORG_UUID --format list --upstream $UPSTREAM_UUID  --tag $INPUT_PANTHEON_TAG --field name | sort -V | parallel --jobs 100 ${{ github.workspace }}/.github/scripts/dev-deploy.sh {}
+        fi

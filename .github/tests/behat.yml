@@ -1,4 +1,3 @@
-# behat.yml
 default:
   suites:
     default:
@@ -10,5 +9,8 @@ default:
         - ResponseHeader
   extensions:
     Behat\MinkExtension:
-      # base_url set by ENV
-      goutte: ~
+      goutte:
+        guzzle_parameters:
+          verify: false
+      selenium2:
+        wd_host: "http://localhost:4444/wd/hub"

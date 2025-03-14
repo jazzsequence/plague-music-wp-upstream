@@ -1,0 +1,57 @@
+name: (Manual) Create new Site Instance
+on: 
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'Region'
+        required: true
+        type: choice
+        options: 
+          - 'us'
+          - 'ca'
+          - 'eu'
+          - 'au'
+        default: 'us'
+      do_notify:
+        description: 'Notify Slack Deploy Channel?'
+        required: true
+        type: choice
+        options: 
+          - 'Yes'
+          - 'No'
+        default: 'Yes'
+      site_name:
+        description: 'Site Name:'
+        required: true
+      site_label:
+        description: 'Site Label:'
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+      id-token: write
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Terminus
+      uses: pantheon-systems/terminus-github-actions@main
+      with:
+        pantheon-machine-token: ${{ secrets.TERMINUS_TOKEN }}
+    - name: Deployment Processing
+      id: branch-processor
+      env:
+        TERMINUS_MACHINE_TOKEN: ${{ secrets.TERMINUS_TOKEN }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: '#firehose'
+        ORG_UUID: ${{ secrets.ORG_UUID }}
+        UPSTREAM_UUID: ${{ secrets.UPSTREAM_UUID }}
+        REGION: ${{ github.event.inputs.region }}
+        SITE_LABEL: ${{ github.event.inputs.site_label }}
+        SITE_NAME: ${{ github.event.inputs.site_name }}
+        DO_NOTIFY: ${{ github.event.inputs.do_notify }}
+      run: ${{ github.workspace }}/.github/bin/notify-slack.sh
