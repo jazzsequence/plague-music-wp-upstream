@@ -54,7 +54,7 @@ jobs:
         DO_NOTIFY: ${{ github.event.inputs.do_notify }}
         VERBOSE: ${{ github.event.inputs.verbose }}
       run: |
-        if  [ $INPUT_PANTHEON_TAG == all ]
+        if  [ $INPUT_PANTHEON_TAG == "all" ]
         then
           echo "Deploying to all sites running this upstream."
           terminus org:site:list $ORG_UUID  --upstream $UPSTREAM_UUID --field name
