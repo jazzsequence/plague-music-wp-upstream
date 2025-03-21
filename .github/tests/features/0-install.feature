@@ -40,7 +40,7 @@ Feature: Install WordPress through the web UI
     Given I log in as an admin
 
     When I go to "/wp-admin/plugins.php"
-    Then I should see "3 items" in the ".displaying-num" element
+    Then I should see "4 items" in the ".displaying-num" element
 
     When I follow "Delete"
     Then I should see "You are about to remove the following plugin:"
@@ -48,5 +48,5 @@ Feature: Install WordPress through the web UI
     When I press "submit"
     Then print current URL
     And I should see "The selected plugin has been deleted." in the "#message" element
-    And I should see "2 items" in the ".displaying-num" element
+    And I should see "3 items" in the ".displaying-num" element
 
