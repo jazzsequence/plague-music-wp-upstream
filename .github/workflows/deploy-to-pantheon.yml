@@ -20,7 +20,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: '#firehose'
         run: |
-          MESSAGE=":rocket: *Deploying `main` to Pantheon Canary site*"
+          MESSAGE=":rocket: *Deploying \`main\` to Pantheon Canary site*"
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           MESSAGE+="\n*GitHub Action run:* $RUN_URL"
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
