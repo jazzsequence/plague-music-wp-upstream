@@ -18,32 +18,120 @@ VERBOSE=$VERBOSE
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
 SLACK_CHANNEL="${SLACK_CHANNEL:-#general}"  # Default to #general if not set
 
-# Function to send messages to Slack
-send_slack_message() {
-  local MESSAGE="$1"
-  if [ "$VERBOSE" == "Yes" ]; then
-    echo "Sending message to Slack: $MESSAGE"
-    curl -X POST "https://slack.com/api/chat.postMessage" \
-      -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "{
-        \"channel\": \"$SLACK_CHANNEL\",
-        \"text\": \"$MESSAGE\"
-      }"
-  else
-    curl -X POST "https://slack.com/api/chat.postMessage" \
-      -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "{
-        \"channel\": \"$SLACK_CHANNEL\",
-        \"text\": \"$MESSAGE\"
-      }" > /dev/null 2>&1
-  fi
+# Create initial Slack message with blocks and return timestamp
+slack_start_message() {
+  local SITE="$1"
+  local START_TIME=$(date +%s)
+  local SITE_LINK="https://dev-${SITE}.pantheonsite.io"
+
+  mkdir -p .slack-ts
+  echo "$START_TIME" > .slack-ts/${SITE}.start
+
+  local PAYLOAD=$(jq -n \
+    --arg channel "#firehose" \
+    --arg emoji ":building_construction:" \
+    --arg site "$SITE" \
+    --arg site_link "$SITE_LINK" \
+    '{
+      channel: $channel,
+      attachments: [
+        {
+          color: "#FFDC28",
+          blocks: [
+            {
+              type: "header",
+              text: { type: "plain_text", text: "\($emoji) Starting \($site) Deployment" }
+            },
+            {
+              type: "section",
+              fields: [
+                { type: "mrkdwn", text: "*Environment:* Dev" },
+                { type: "mrkdwn", text: "*Site:* <\($site_link)|\($site)>" }
+              ]
+            },
+            { type: "divider" }
+          ]
+        }
+      ]
+    }'
+  )
+
+  RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
+  -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD")
+
+  TS=$(echo "$RESPONSE" | jq -r '.ts')
+  echo "$TS" > .slack-ts/${SITE}.ts
 }
 
-# Notify Slack that deployment is starting
-SLACK_START=":building_construction: Started ${SITE_LABEL} deployment to Dev :building_construction: \n"
-[ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_START"
+# Send a message into the thread for the given site
+slack_thread_update() {
+  local SITE="$1"
+  local MESSAGE="$2"
+  local CHANNEL="$3"
+  local TS=$(cat .slack-ts/${SITE}.ts)
+
+  jq -n \
+    --arg channel "$CHANNEL" \
+    --arg text "$MESSAGE" \
+    --arg ts "$TS" \
+    '{
+      channel: $channel,
+      text: $text,
+      thread_ts: $ts
+    }' | curl -s -X POST https://slack.com/api/chat.postMessage \
+      -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d @-
+}
+
+# Update the original message with the final state
+slack_update_final() {
+  local SITE="$1"
+  local TS=$(cat .slack-ts/${SITE}.ts)
+  local START_TIME=$(cat .slack-ts/${SITE}.start)
+  local END_TIME=$(date +%s)
+  local DURATION=$((END_TIME - START_TIME))
+  local MIN=$(printf "%.2f" "$(bc <<< "scale=2; $DURATION/60")")
+  local LINK="https://dev-${SITE}.panthsonsite.io"
+
+  local PAYLOAD=$(jq -n \
+    --arg channel "#firehose" \
+    --arg ts "$TS" \
+    --arg emoji ":white_check_mark:" \
+    --arg site "$SITE" \
+    --arg min "$MIN" \
+    --arg link "$LINK" \
+    '{
+      channel: $channel,
+      ts: $ts,
+      attachments: [
+        {
+          color: "#2EB67D",
+          blocks: [
+            {
+              type: "header",
+              text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea: \n\($site)" }
+            },
+            {
+              type: "section",
+              text: { type: "mrkdwn", text: "Completed in \($min)min.\n<\($link)|View site>" }
+            },
+            { type: "divider" }
+          ]
+        }
+      ]
+    }'
+  )
+
+  curl -s -X POST https://slack.com/api/chat.update \
+    -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$PAYLOAD"  
+}
+
+[ "$NOTIFY" == "Yes" ] && slack_start_message "$SITE"
 
 echo -e "Starting ${SITE} \n"
 
@@ -51,7 +139,7 @@ echo -e "Starting ${SITE} \n"
 if [ "$BACKUP" == "Yes" ]; then
   terminus backup:create --element database --keep-for 30 -- $DEV
   SLACK_BACKUP="Finished ${SITE_LABEL} Dev Backup. Deploying code."
-  [ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_BACKUP"
+  [ "$NOTIFY" == "Yes" ] && slack_thread_update "$SITE" "$SLACK_BACKUP"
 fi
 
 # Apply upstream updates
@@ -59,7 +147,7 @@ terminus upstream:updates:apply $DEV --accept-upstream -q
 echo -e "Finished applying upstream updates for ${SITE} \n"
 
 SLACK_DEPLOY="${SITE_LABEL} DEV Code Deployment Finished. Importing config and clearing cache."
-[ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_DEPLOY"
+[ "$NOTIFY" == "Yes" ] && slack_thread_update "$SITE" "$SLACK_DEPLOY"
 
 # Run any post-deploy commands
 if [ "$VERBOSE" == "Yes" ]; then
@@ -73,8 +161,6 @@ echo -e "Finished clearing cache for ${SITE} \n"
 DURATION=$(( SECONDS - START ))
 TIME_DIFF=$(bc <<< "scale=2; $DURATION / 60")
 MIN=$(printf "%.2f" $TIME_DIFF)
-SITE_LINK="https://dev-${SITE}.pantheonsite.io"
-SLACK_FINISH=":white_check_mark: Finished ${SITE_LABEL} deployment to Dev in ${MIN} minutes. \n ${SITE_LINK}"
-[ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_FINISH"
+[ "$NOTIFY" == "Yes" ] && slack_update_final "$SITE"
 
 exit 0  # Done!
