@@ -22,6 +22,14 @@ on:
           - 'Yes'
           - 'No'
         default: 'No'
+      verbose:
+        description: Use verbose output in Github Actions?
+        required: false
+        type: choice
+        options: 
+          - 'Yes'
+          - 'No'
+        default: 'No'
 jobs:
   build:
     name: Deploy code to Dev
@@ -44,6 +52,7 @@ jobs:
         INPUT_PANTHEON_TAG: ${{ github.event.inputs.pantheon_tag }}
         DO_BACKUP: ${{ github.event.inputs.do_backup }}
         DO_NOTIFY: ${{ github.event.inputs.do_notify }}
+        VERBOSE: ${{ github.event.inputs.verbose }}
       run: |
         if  [ $INPUT_PANTHEON_TAG == all ]
         then
