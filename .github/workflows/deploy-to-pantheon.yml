@@ -23,4 +23,5 @@ jobs:
       - name: Cleanup old environments
         env:
           MULTIDEV_DELETE_PATTERN: pr-
+          TERMINUS_SITE: plague-music-canary
         run: ${{ github.workspace }}/.github/bin/cleanup.sh
