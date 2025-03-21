@@ -126,7 +126,7 @@ slack_update_final() {
               type: "section",
               fields: [
                 { type: "mrkdwn", text: "*Environment:* Dev" },
-                { type: "mrkdwn", text: "*Site:* <\($site_link)|\($site)>" }
+                { type: "mrkdwn", text: "*Site:* <\($link)|\($site)>" }
               ]
             },
             {
