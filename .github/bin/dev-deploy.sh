@@ -120,11 +120,15 @@ slack_update_final() {
           blocks: [
             {
               type: "header",
-              text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea: \n\($site)" }
+              text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea:" }
             },
             {
-              type: "section",
-              text: { type: "mrkdwn", text: "Completed in \($min)min.\n<\($link)|View site>" }
+              type: "section",,
+              fields: [
+                { type: "mrkdwn", text: "*Environment:* Dev" },
+                { type: "mrkdwn", text: "*Site:* <\($site_link)|\($site)>" }
+                { text: { type: "mrkdwn", text: "Completed in \($min)min.\n<\($link)|View site>" }
+              ]
             },
             { type: "divider" }
           ]
