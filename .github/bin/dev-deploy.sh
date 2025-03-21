@@ -14,11 +14,6 @@ BACKUP=$DO_BACKUP
 NOTIFY=$DO_NOTIFY
 VERBOSE=$VERBOSE
 
-# Set Slack variables
-SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
-SLACK_CHANNEL_NAME="#firehose"
-SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
-
 get_channel_id() {
   local NAME="$1"
   curl -s -X GET "https://slack.com/api/conversations.list?exclude_archived=true&limit=1000" \
@@ -26,6 +21,11 @@ get_channel_id() {
     -H "Content-Type: application/x-www-form-urlencoded" | \
     jq -r --arg name "$NAME" '.channels[] | select(.name == ($name | ltrimstr("#"))) | .id'
 }
+
+# Set Slack variables
+SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
+SLACK_CHANNEL_NAME="#firehose"
+SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
 
 # Create initial Slack message with blocks and return timestamp
 slack_start_message() {
