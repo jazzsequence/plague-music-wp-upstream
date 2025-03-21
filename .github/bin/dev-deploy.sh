@@ -16,19 +16,28 @@ VERBOSE=$VERBOSE
 
 # Set Slack variables
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
+SLACK_CHANNEL_NAME="#firehose"
+SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
+
+get_channel_id() {
+  local NAME="$1"
+  curl -s -X GET "https://slack.com/api/conversations.list?exclude_archived=true&limit=1000" \
+    -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+    -H "Content-Type: application/x-www-form-urlencoded" | \
+    jq -r --arg name "$NAME" '.channels[] | select(.name == ($name | ltrimstr("#"))) | .id'
+}
 
 # Create initial Slack message with blocks and return timestamp
 slack_start_message() {
   local SITE="$1"
   local START_TIME=$(date +%s)
   local SITE_LINK="https://dev-${SITE}.pantheonsite.io"
-  local CHANNEL="#firehose"
 
   mkdir -p .slack-ts
   echo "$START_TIME" > .slack-ts/${SITE}.start
 
   local PAYLOAD=$(jq -n \
-    --arg channel "$CHANNEL" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg emoji ":building_construction:" \
     --arg site "$SITE" \
     --arg site_link "$SITE_LINK" \
@@ -70,10 +79,9 @@ slack_thread_update() {
   local SITE="$1"
   local MESSAGE="$2"
   local TS=$(cat .slack-ts/${SITE}.ts)
-  local CHANNEL="#firehose"
 
   jq -n \
-    --arg channel "$CHANNEL" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg text "$MESSAGE" \
     --arg ts "$TS" \
     '{
@@ -95,10 +103,9 @@ slack_update_final() {
   local DURATION=$((END_TIME - START_TIME))
   local MIN=$(printf "%.2f" "$(bc <<< "scale=2; $DURATION/60")")
   local LINK="https://dev-${SITE}.panthsonsite.io"
-  local CHANNEL="#firehose"
 
   local PAYLOAD=$(jq -n \
-    --arg channel "$CHANNEL" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg ts "$TS" \
     --arg emoji ":white_check_mark:" \
     --arg site "$SITE" \
