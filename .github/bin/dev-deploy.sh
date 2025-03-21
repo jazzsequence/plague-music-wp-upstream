@@ -16,7 +16,6 @@ VERBOSE=$VERBOSE
 
 # Set Slack variables
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
-SLACK_CHANNEL="${SLACK_CHANNEL:-#firehose}"  # Default to #general if not set
 
 # Create initial Slack message with blocks and return timestamp
 slack_start_message() {
@@ -28,7 +27,7 @@ slack_start_message() {
   echo "$START_TIME" > .slack-ts/${SITE}.start
 
   local PAYLOAD=$(jq -n \
-    --arg channel "$SLACK_CHANNEL" \
+    --arg channel "#firehose" \
     --arg emoji ":building_construction:" \
     --arg site "$SITE" \
     --arg site_link "$SITE_LINK" \
@@ -72,7 +71,7 @@ slack_thread_update() {
   local TS=$(cat .slack-ts/${SITE}.ts)
 
   jq -n \
-    --arg channel "$SLACK_CHANNEL" \
+    --arg channel "#firehose" \
     --arg text "$MESSAGE" \
     --arg ts "$TS" \
     '{
@@ -96,7 +95,7 @@ slack_update_final() {
   local LINK="https://dev-${SITE}.panthsonsite.io"
 
   local PAYLOAD=$(jq -n \
-    --arg channel "$SLACK_CHANNEL" \
+    --arg channel "#firehose" \
     --arg ts "$TS" \
     --arg emoji ":white_check_mark:" \
     --arg site "$SITE" \
