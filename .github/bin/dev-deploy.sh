@@ -14,9 +14,18 @@ BACKUP=$DO_BACKUP
 NOTIFY=$DO_NOTIFY
 VERBOSE=$VERBOSE
 
+get_channel_id() {
+  local NAME="$1"
+  curl -s -X GET "https://slack.com/api/conversations.list?exclude_archived=true&limit=1000" \
+    -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+    -H "Content-Type: application/x-www-form-urlencoded" | \
+    jq -r --arg name "$NAME" '.channels[] | select(.name == ($name | ltrimstr("#"))) | .id'
+}
+
 # Set Slack variables
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
-SLACK_CHANNEL="${SLACK_CHANNEL:-#general}"  # Default to #general if not set
+SLACK_CHANNEL_NAME="#firehose"
+SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
 
 # Create initial Slack message with blocks and return timestamp
 slack_start_message() {
@@ -28,7 +37,7 @@ slack_start_message() {
   echo "$START_TIME" > .slack-ts/${SITE}.start
 
   local PAYLOAD=$(jq -n \
-    --arg channel "#firehose" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg emoji ":building_construction:" \
     --arg site "$SITE" \
     --arg site_link "$SITE_LINK" \
@@ -58,7 +67,7 @@ slack_start_message() {
 
   RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
   -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
+  -H "Content-Type: application/json; charset=utf-8" \
   -d "$PAYLOAD")
 
   TS=$(echo "$RESPONSE" | jq -r '.ts')
@@ -69,11 +78,10 @@ slack_start_message() {
 slack_thread_update() {
   local SITE="$1"
   local MESSAGE="$2"
-  local CHANNEL="$3"
   local TS=$(cat .slack-ts/${SITE}.ts)
 
   jq -n \
-    --arg channel "$CHANNEL" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg text "$MESSAGE" \
     --arg ts "$TS" \
     '{
@@ -82,7 +90,7 @@ slack_thread_update() {
       thread_ts: $ts
     }' | curl -s -X POST https://slack.com/api/chat.postMessage \
       -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-      -H "Content-Type: application/json" \
+      -H "Content-Type: application/json; charset=utf-8" \
       -d @-
 }
 
@@ -97,7 +105,7 @@ slack_update_final() {
   local LINK="https://dev-${SITE}.panthsonsite.io"
 
   local PAYLOAD=$(jq -n \
-    --arg channel "#firehose" \
+    --arg channel "$SLACK_CHANNEL_ID" \
     --arg ts "$TS" \
     --arg emoji ":white_check_mark:" \
     --arg site "$SITE" \
@@ -112,7 +120,14 @@ slack_update_final() {
           blocks: [
             {
               type: "header",
-              text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea: \n\($site)" }
+              text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea:" }
+            },
+            {
+              type: "section",
+              fields: [
+                { type: "mrkdwn", text: "*Environment:* Dev" },
+                { type: "mrkdwn", text: "*Site:* <\($link)|\($site)>" }
+              ]
             },
             {
               type: "section",
@@ -127,7 +142,7 @@ slack_update_final() {
 
   curl -s -X POST https://slack.com/api/chat.update \
     -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-    -H "Content-Type: application/json" \
+    -H "Content-Type: application/json; charset=utf-8" \
     -d "$PAYLOAD"  
 }
 
