@@ -25,7 +25,7 @@ get_channel_id() {
 # Set Slack variables
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
 SLACK_CHANNEL_NAME="#firehose"
-SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
+#SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
 
 curl -s -X GET "https://slack.com/api/conversations.list?exclude_archived=true&limit=1000" \
   -H "Authorization: Bearer $SLACK_BOT_TOKEN"
