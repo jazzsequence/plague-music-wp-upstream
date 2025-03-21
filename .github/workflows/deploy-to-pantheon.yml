@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Pantheon
-        uses: stevector-streaming/dtp@0.2.0
+        uses: stevector-streaming/dtp@0.2.1
         with:
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           site: plague-music-canary
