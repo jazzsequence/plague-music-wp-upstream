@@ -127,7 +127,7 @@ slack_update_final() {
               fields: [
                 { type: "mrkdwn", text: "*Environment:* Dev" },
                 { type: "mrkdwn", text: "*Site:* <\($site_link)|\($site)>" }
-                { text: { type: "mrkdwn", text: "Completed in \($min)min.\n<\($link)|View site>" }
+                { type: "mrkdwn", text: "Completed in \($min)min.\n<\($link)|View site>" }
               ]
             },
             { type: "divider" }
