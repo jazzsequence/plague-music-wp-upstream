@@ -3,8 +3,8 @@
 # Echo commands as they are executed, but don't allow errors to stop the script.
 set -x
 
-if [ -z "$TERMINUS_SITE" ] || [ -z "$TERMINUS_ENV" ]; then
-  echo "TERMINUS_SITE and TERMINUS_ENV environment variables must be set"
+if [ -z "$TERMINUS_SITE" ]; then
+  echo "TERMINUS_SITE environment variables must be set"
   exit 1
 fi
 
