@@ -20,3 +20,7 @@ jobs:
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           site: plague-music-canary
           machine_token: ${{ secrets.TERMINUS_TOKEN }}
+      - name: Cleanup old environments
+        env:
+          MULTIDEV_DELETE_PATTERN: pr-
+        run: ${{ github.workspace }}/.github/bin/cleanup.sh
