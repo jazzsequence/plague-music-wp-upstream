@@ -22,12 +22,13 @@ slack_start_message() {
   local SITE="$1"
   local START_TIME=$(date +%s)
   local SITE_LINK="https://dev-${SITE}.pantheonsite.io"
+  local CHANNEL="#firehose"
 
   mkdir -p .slack-ts
   echo "$START_TIME" > .slack-ts/${SITE}.start
 
   local PAYLOAD=$(jq -n \
-    --arg channel "#firehose" \
+    --arg channel "$CHANNEL" \
     --arg emoji ":building_construction:" \
     --arg site "$SITE" \
     --arg site_link "$SITE_LINK" \
@@ -69,9 +70,10 @@ slack_thread_update() {
   local SITE="$1"
   local MESSAGE="$2"
   local TS=$(cat .slack-ts/${SITE}.ts)
+  local CHANNEL="#firehose"
 
   jq -n \
-    --arg channel "#firehose" \
+    --arg channel "$CHANNEL" \
     --arg text "$MESSAGE" \
     --arg ts "$TS" \
     '{
@@ -93,9 +95,10 @@ slack_update_final() {
   local DURATION=$((END_TIME - START_TIME))
   local MIN=$(printf "%.2f" "$(bc <<< "scale=2; $DURATION/60")")
   local LINK="https://dev-${SITE}.panthsonsite.io"
+  local CHANNEL="#firehose"
 
   local PAYLOAD=$(jq -n \
-    --arg channel "#firehose" \
+    --arg channel "$CHANNEL" \
     --arg ts "$TS" \
     --arg emoji ":white_check_mark:" \
     --arg site "$SITE" \
