@@ -21,7 +21,7 @@ on:
         options: 
           - 'Yes'
           - 'No'
-        default: 'No'
+        default: 'Yes'
       verbose:
         description: Use verbose output in Github Actions?
         required: false
