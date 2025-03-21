@@ -27,6 +27,13 @@ SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
 SLACK_CHANNEL_NAME="#firehose"
 SLACK_CHANNEL_ID=$(get_channel_id "$SLACK_CHANNEL_NAME")
 
+echo "DEBUG: Channel ID for $SLACK_CHANNEL_NAME is '$SLACK_CHANNEL_ID'"
+if [ -z "$SLACK_CHANNEL_ID" ]; then
+  echo "ERROR: Slack channel ID could not be resolved. Aborting."
+  exit 1
+fi
+
+
 # Create initial Slack message with blocks and return timestamp
 slack_start_message() {
   local SITE="$1"
