@@ -24,7 +24,14 @@ if [ -z "$MULTIDEV_DELETE_PATTERN" ] ; then
 fi
 
 # List all but the newest two environments.
-OLDEST_ENVIRONMENTS=$(terminus env:list "$TERMINUS_SITE" --format=list | grep -v dev | grep -v test | grep -v live | sort -k2 | grep "$MULTIDEV_DELETE_PATTERN" | sed -e '$d' | sed -e '$d')
+ALL_ENVS=$(terminus env:list "$TERMINUS_SITE" --format=list)
+OLDEST_ENVIRONMENTS=$(echo "$ALL_ENVS" \
+  | grep -v dev \
+  | grep -v test \
+  | grep -v live \
+  | sort \
+  | grep "$MULTIDEV_DELETE_PATTERN" \
+  | sed -e '$d')
 
 # Exit if there are no environments to delete
 if [ -z "$OLDEST_ENVIRONMENTS" ] ; then
