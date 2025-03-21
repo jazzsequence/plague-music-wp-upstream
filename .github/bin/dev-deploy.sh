@@ -123,7 +123,7 @@ slack_update_final() {
               text: { type: "plain_text", text: "\($emoji) Deployment Complete! :tea:" }
             },
             {
-              type: "section",,
+              type: "section",
               fields: [
                 { type: "mrkdwn", text: "*Environment:* Dev" },
                 { type: "mrkdwn", text: "*Site:* <\($site_link)|\($site)>" }
