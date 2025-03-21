@@ -20,7 +20,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: '#firehose'
         run: |
-          MESSAGE=":rocket: **Deploying 'main' to Pantheon Canary site**"
+          MESSAGE=":rocket: *Deploying 'main' to Pantheon Canary site*"
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
           MESSAGE+="\nCommit message: $COMMIT_MESSAGE"
           curl -X POST "https://slack.com/api/chat.postMessage" \
@@ -47,8 +47,8 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: '#firehose'
         run: |
-          MESSAGE=":white-check-mark: **Deployment complete!** :tea:"
-          MESSAGE+="https://dev-plague-music-canary.pantheonsite.io"
+          MESSAGE=":white_check_mark: *Deployment complete!* :tea:"
+          MESSAGE+="\nhttps://dev-plague-music-canary.pantheonsite.io"
           curl -X POST "https://slack.com/api/chat.postMessage" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
