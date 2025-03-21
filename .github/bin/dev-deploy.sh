@@ -12,6 +12,7 @@ START=$SECONDS
 SITE_LABEL=$(terminus site:info --fields label --format string -- ${SITE})
 BACKUP=$DO_BACKUP
 NOTIFY=$DO_NOTIFY
+VERBOSE=$VERBOSE
 
 # Set Slack variables
 SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
@@ -20,17 +21,28 @@ SLACK_CHANNEL="${SLACK_CHANNEL:-#general}"  # Default to #general if not set
 # Function to send messages to Slack
 send_slack_message() {
   local MESSAGE="$1"
-  curl -X POST "https://slack.com/api/chat.postMessage" \
-    -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d "{
-      \"channel\": \"$SLACK_CHANNEL\",
-      \"text\": \"$MESSAGE\"
-    }"
+  if [ "$VERBOSE" == "Yes" ]; then
+    echo "Sending message to Slack: $MESSAGE"
+    curl -X POST "https://slack.com/api/chat.postMessage" \
+      -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"channel\": \"$SLACK_CHANNEL\",
+        \"text\": \"$MESSAGE\"
+      }"
+  else
+    curl -X POST "https://slack.com/api/chat.postMessage" \
+      -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"channel\": \"$SLACK_CHANNEL\",
+        \"text\": \"$MESSAGE\"
+      }" > /dev/null 2>&1
+  fi
 }
 
 # Notify Slack that deployment is starting
-SLACK_START="------------- :building_construction: Started ${SITE_LABEL} deployment to Dev :building_construction: ------------- \n"
+SLACK_START=":building_construction: Started ${SITE_LABEL} deployment to Dev :building_construction: \n"
 [ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_START"
 
 echo -e "Starting ${SITE} \n"
@@ -50,7 +62,11 @@ SLACK_DEPLOY="${SITE_LABEL} DEV Code Deployment Finished. Importing config and c
 [ "$NOTIFY" == "Yes" ] && send_slack_message "$SLACK_DEPLOY"
 
 # Run any post-deploy commands
-terminus env:clear-cache $DEV -vvv
+if [ "$VERBOSE" == "Yes" ]; then
+  terminus env:clear-cache $DEV -vvv
+else
+  terminus env:clear-cache $DEV
+fi
 echo -e "Finished clearing cache for ${SITE} \n"
 
 # Report time to results
