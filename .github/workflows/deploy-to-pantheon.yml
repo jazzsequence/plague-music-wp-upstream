@@ -24,4 +24,5 @@ jobs:
         env:
           MULTIDEV_DELETE_PATTERN: pr-
           TERMINUS_SITE: plague-music-canary
+          GITHUB_REPOSITORY: ${{ github.repository }}          
         run: ${{ github.workspace }}/.github/bin/cleanup.sh
