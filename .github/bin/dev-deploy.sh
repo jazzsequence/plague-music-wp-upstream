@@ -67,7 +67,7 @@ slack_start_message() {
 
   RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
   -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
+  -H "Content-Type: application/json; charset=utf-8" \
   -d "$PAYLOAD")
 
   TS=$(echo "$RESPONSE" | jq -r '.ts')
@@ -90,7 +90,7 @@ slack_thread_update() {
       thread_ts: $ts
     }' | curl -s -X POST https://slack.com/api/chat.postMessage \
       -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-      -H "Content-Type: application/json" \
+      -H "Content-Type: application/json; charset=utf-8" \
       -d @-
 }
 
@@ -135,7 +135,7 @@ slack_update_final() {
 
   curl -s -X POST https://slack.com/api/chat.update \
     -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-    -H "Content-Type: application/json" \
+    -H "Content-Type: application/json; charset=utf-8" \
     -d "$PAYLOAD"  
 }
 
