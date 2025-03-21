@@ -5,7 +5,13 @@ on:
     paths-ignore:
       - '.github/**'
       - 'readme.html'
-      - 'README.md'      
+      - 'README.md'
+
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
