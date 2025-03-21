@@ -52,6 +52,6 @@ jobs:
           terminus org:site:list $ORG_UUID --format list --upstream $UPSTREAM_UUID --field name | sort -V | parallel --jobs 100 ${{ github.workspace }}/.github/scripts/dev-deploy.sh {}
         else
           echo "Deploying to sites with tag: $INPUT_PANTHEON_TAG."
-          terminus org:site:list $ORG_UUID  --upstream $UPSTREAM_UUID --tag $INPUT_PANTHEON_TAG --field name
+          terminus org:site:list $ORG_UUID  --upstream $UPSTREAM_UUID --tag "$INPUT_PANTHEON_TAG" --field name
           terminus org:site:list $ORG_UUID --format list --upstream $UPSTREAM_UUID  --tag $INPUT_PANTHEON_TAG --field name | sort -V | parallel --jobs 100 ${{ github.workspace }}/.github/scripts/dev-deploy.sh {}
         fi
