@@ -20,9 +20,11 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: '#firehose'
         run: |
-          MESSAGE=":rocket: *Deploying 'main' to Pantheon Canary site*"
+          MESSAGE=":rocket: *Deploying `main` to Pantheon Canary site*"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MESSAGE+="\n*GitHub Action run:* $RUN_URL"
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
-          MESSAGE+="\nCommit message: $COMMIT_MESSAGE"
+          MESSAGE+="\n*Commit message:* $COMMIT_MESSAGE"
           curl -X POST "https://slack.com/api/chat.postMessage" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
