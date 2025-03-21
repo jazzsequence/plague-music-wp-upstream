@@ -15,6 +15,10 @@ fi
 # To use this feature, set MULTIDEV_DELETE_PATTERN to '^ci-' or similar
 # in the CI server environment variables.
 if [ -z "$MULTIDEV_DELETE_PATTERN" ] ; then
+  if [ -z "$TERMINUS_ENV" ]; then
+    echo "TERMINUS_ENV environment variables must be set if you're not using MULTIDEV_DELETE_PATTERN"
+    exit 1
+  fi
   terminus env:delete $TERMINUS_SITE.$TERMINUS_ENV --delete-branch --yes
   exit 0
 fi
