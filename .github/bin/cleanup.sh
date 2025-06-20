@@ -45,6 +45,10 @@ for ENV_TO_DELETE in $OLDEST_ENVIRONMENTS ; do
   # Delete related GitHub deployment environment
   if [ -n "$GITHUB_REPOSITORY" ]; then
     echo "Deleting GitHub deployment environment: $ENV_TO_DELETE..."
+    if ! gh api "repos/${GITHUB_REPOSITORY}/environments/$ENV_TO_DELETE" > /dev/null 2>&1; then
+      echo "GitHub environment $ENV_TO_DELETE does not exist, skipping deletion."
+      continue
+    fi
     gh api --method DELETE "repos/${GITHUB_REPOSITORY}/environments/$ENV_TO_DELETE"
   else 
     echo "Skipping GitHub deletion for $ENV_TO_DELETE — GITHUB_TOKEN or GITHUB_REPOSITORY not set."
