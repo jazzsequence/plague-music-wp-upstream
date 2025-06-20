@@ -14,6 +14,7 @@ if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
 // Add mu-plugins here.
 $pantheon_mu_plugins = [
 	'pantheon-mu-plugin/pantheon.php',
+	'fair-plugin/plugin.php',
 	'artists/artists.php',
 	'releases/album-releases.php',
 ];
