@@ -6,13 +6,19 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
   deployments: write
   statuses: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      git_user_name: "Pantheon Robot"
+      git_user_email: "bot@getpantheon.com"
+    concurrency:
+        group: ${{ github.workflow }}-main
+        cancel-in-progress: true      
     steps:
       - uses: actions/checkout@v4
       - name: Send Slack message (start)
@@ -33,11 +39,15 @@ jobs:
               \"text\": \"$MESSAGE\"
             }" > /dev/null 2>&1
       - name: Deploy to Pantheon
-        uses: stevector-streaming/dtp@0.2.1
+        uses: pantheon-systems/push-to-pantheon@0.6.0
         with:
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           site: plague-music-canary
           machine_token: ${{ secrets.TERMINUS_TOKEN }}
+          git_user_name: ${{ env.git_user_name }}
+          git_user_email: ${{ env.git_user_email }}
+          git_commit_message: "🤖 Commit build assets"
+
       - name: Cleanup old environments
         env:
           MULTIDEV_DELETE_PATTERN: pr-
