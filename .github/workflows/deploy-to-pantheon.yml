@@ -52,7 +52,8 @@ jobs:
         env:
           MULTIDEV_DELETE_PATTERN: pr-
           TERMINUS_SITE: plague-music-canary
-          GITHUB_REPOSITORY: ${{ github.repository }}          
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: ${{ github.workspace }}/.github/bin/cleanup.sh
       - name: Send Slack message (finish)
         env:
