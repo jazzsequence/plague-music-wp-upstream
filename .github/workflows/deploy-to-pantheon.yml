@@ -39,7 +39,7 @@ jobs:
               \"text\": \"$MESSAGE\"
             }" > /dev/null 2>&1
       - name: Deploy to Pantheon
-        uses: pantheon-systems/push-to-pantheon@0.6.0
+        uses: pantheon-systems/push-to-pantheon@0.6.1
         with:
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           site: plague-music-canary
