@@ -20,7 +20,7 @@ jobs:
         group: ${{ github.workflow }}-main
         cancel-in-progress: true      
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Send Slack message (start)
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
