@@ -5,6 +5,15 @@
  * Handles modifying the default WordPress update behavior on Pantheon.
  */
 
+/*
+ * User-meta key storing the WordPress version a user dismissed the update notice for.
+ * A newer available version no longer matches the stored value, so the notice returns.
+ */
+const PANTHEON_UPDATE_NOTICE_DISMISSED_META = 'pantheon_dismissed_update_notice';
+
+// AJAX action + nonce used by the dismiss handler and its front-end script.
+const PANTHEON_UPDATE_NOTICE_DISMISS_ACTION = 'pantheon_dismiss_update_notice';
+
 // If on Pantheon...
 if ( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ) {
 	// Disable WordPress auto updates.
@@ -72,61 +81,109 @@ function _pantheon_is_wordpress_core_prerelease(): bool {
 }
 
 /**
- * Replace WordPress core update nag EVERYWHERE with our own notice.
- * Use git upstream instead
+ * Render Pantheon's upstream update notice in place of the WordPress core update nag.
+ *
+ * Suppressed by the PANTHEON_SHOW_UPDATE_NOTICE constant or the
+ * pantheon_show_update_notice filter (see the respective checks below).
  *
  * @return void
  */
 function _pantheon_upstream_update_notice() {
-	$wp_version = Pantheon\_pantheon_get_current_wordpress_version();
+	// Allow admins/developers to disable the update notice via constant or filter.
+	if ( defined( 'PANTHEON_SHOW_UPDATE_NOTICE' ) && ! PANTHEON_SHOW_UPDATE_NOTICE ) {
+		return;
+	}
+
+	/**
+	 * Filters whether the Pantheon WordPress update notice is shown.
+	 *
+	 * @param bool $show Whether to show the update notice. Default true.
+	 */
+	if ( ! apply_filters( 'pantheon_show_update_notice', true ) ) {
+		return;
+	}
+
 	$screen = get_current_screen();
-	// Translators: %s is a URL to the user's Pantheon Dashboard.
-	$notice_message = sprintf( __( 'Check for updates on <a href="%s">your Pantheon dashboard</a>.', 'pantheon-systems' ), 'https://dashboard.pantheon.io/sites/' . $_ENV['PANTHEON_SITE'] );
-	// Translators: %s is a URL to Pantheon's upstream updates documentation.
-	$upstream_help_message = sprintf( __( 'For details on applying updates, see the <a href="%s">Applying Upstream Updates</a> documentation.', 'pantheon-systems' ), 'https://docs.pantheon.io/core-updates' );
-	$update_help = __( 'If you need help, contact an administrator for your Pantheon organization.', 'pantheon-systems' );
-	$div_class = esc_attr( 'update-nag notice notice-warning' );
-	$div_style = esc_attr( 'display: table;' );
-	$paragraph_style = esc_attr( 'font-size: 14px; font-weight: bold; margin: 0 0 0.5em 0;' );
 
-	if ( ! _pantheon_is_wordpress_core_latest() ) {
-		// If WP core is out of date, alter the message and show the nag everywhere.
-		// Translators: %s is a URL to the user's Pantheon Dashboard.
-		$notice_message = sprintf( __( 'A new WordPress update is available! Please update from <a href="%s">your Pantheon dashboard</a>.', 'pantheon-systems' ), 'https://dashboard.pantheon.io/sites/' . $_ENV['PANTHEON_SITE'] );
-	}
-
-	// If WP core is a pre-release, alter the message.
+	// Check if using a pre-release version of WordPress.
 	if ( _pantheon_is_wordpress_core_prerelease() ) {
-		$version = '<span style="font-weight: normal;">(' . $wp_version . ')</span>';
-		$paragraph_style = esc_attr( 'font-size: 14px;' );
-		// Translators: %s is the current WordPress version.
-		$notice_message = sprintf( __( '<strong>You are using a development version of WordPress.</strong> %s', 'pantheon-systems' ), $version );
-		// If we're on the Updates page, add a note about the Beta Tester plugin.
-		if ( 'update-core' === $screen->id || 'update-core-network' === $screen->id ) {
-			$notice_message .= '<br /><span style="font-weight: normal;">';
-			$notice_message .= __( 'You are responsible for keeping WordPress up-to-date. Pantheon updates to WordPress will not appear in the dashboard as long as you\'re using a pre-release version. If you are using the Beta Tester plugin, you must have your site in SFTP mode to get the latest updates to your Pantheon Dev environment.', 'pantheon-systems' );
-		}
+		_pantheon_prerelease_notice();
+		return;
 	}
 
-	ob_start();
-	?>
-	<div class="<?php echo esc_attr( $div_class ); ?>" style="<?php echo esc_attr( $div_style ); ?>">
-		<p style="<?php echo esc_attr( $paragraph_style ); ?>">
-			<?php echo wp_kses_post( $notice_message ); ?>
-		</p>
-		<?php if ( ! _pantheon_is_wordpress_core_prerelease() ) : ?>
-			<?php echo wp_kses_post( $upstream_help_message ); ?>
-			<br />
-			<?php echo wp_kses_post( $update_help ); ?>
-		<?php endif; ?>
-	</div>
-	<?php
-	$notice_html = ob_get_clean();
-	// If a WP core update is not detected, only show the nag on the updates page.
-	if ( ! _pantheon_is_wordpress_core_latest() || 'update-core' === $screen->id || 'update-core-network' === $screen->id ) {
-			// Escaping is handled above when we're buffering the output, so we can ignore it here.
-			echo $notice_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	$dashboard_url = Pantheon\_pantheon_get_dashboard_url();
+	$is_update_page = 'update-core' === $screen->id || 'update-core-network' === $screen->id;
+	$core_update_available = ! _pantheon_is_wordpress_core_latest();
+
+	// If core update is available, show the update notice on ALL pages.
+	if ( $core_update_available ) {
+		// Skip the notice if this user already dismissed it for the current available version.
+		$available_version = _pantheon_get_latest_wordpress_version();
+		$dismissed_version = get_user_meta( get_current_user_id(), PANTHEON_UPDATE_NOTICE_DISMISSED_META, true );
+		if ( $available_version && $dismissed_version === $available_version ) {
+			return;
+		}
+
+		$message = sprintf(
+			// translators: %s is a link to the Pantheon upstream updates documentation.
+			__( 'For details on applying updates, see the <a href="%s">Applying Upstream Updates</a> documentation. If you need help, contact an administrator for your Pantheon organization.', 'pantheon-systems' ),
+			'https://docs.pantheon.io/core-updates'
+		);
+
+		Pantheon\_pantheon_render_notice( [
+			'type'          => 'warning',
+			'heading'       => __( 'A new WordPress update is available!', 'pantheon-systems' ),
+			'message'       => $message,
+			'button_text'   => __( 'Pantheon Dashboard', 'pantheon-systems' ),
+			'button_url'    => $dashboard_url,
+			'id'            => 'pantheon-update-notice',
+			'extra_classes' => 'pantheon-update-notice',
+			'dismissible'   => true,
+		] );
+	} elseif ( $is_update_page ) {
+		// If no update is available but we're on the update pages, show the "Check for updates" message.
+		$message = sprintf(
+			// translators: %s is a link to the Pantheon upstream updates documentation.
+			__( 'WordPress core updates can be applied via the Pantheon Dashboard. For details on applying updates, see the <a href="%s">Applying Upstream Updates</a> documentation. If you need help, contact an administrator for your Pantheon organization.', 'pantheon-systems' ),
+			'https://docs.pantheon.io/core-updates'
+		);
+
+		Pantheon\_pantheon_render_notice( [
+			'type'          => 'warning',
+			'heading'       => __( 'Check for Updates', 'pantheon-systems' ),
+			'message'       => $message,
+			'button_text'   => __( 'Pantheon Dashboard', 'pantheon-systems' ),
+			'button_url'    => $dashboard_url,
+			'id'            => 'pantheon-update-notice',
+			'extra_classes' => 'pantheon-update-notice',
+		] );
 	}
+}
+
+/**
+ * Display notice for WordPress pre-release/development versions
+ *
+ * @return void
+ */
+function _pantheon_prerelease_notice() {
+	$screen = get_current_screen();
+	$wp_version = Pantheon\_pantheon_get_current_wordpress_version();
+	$message = sprintf(
+		// Translators: %s is the current WordPress version.
+		__( 'You are using a development version of WordPress (%s).', 'pantheon-systems' ),
+		$wp_version
+	);
+
+	// Add extra info on the updates page.
+	if ( 'update-core' === $screen->id || 'update-core-network' === $screen->id ) {
+		$message .= ' ' . __( 'You are responsible for keeping WordPress up-to-date. Pantheon updates to WordPress will not appear in the dashboard as long as you\'re using a pre-release version. If you are using the Beta Tester plugin, you must have your site in SFTP mode to get the latest updates to your Pantheon Dev environment.', 'pantheon-systems' );
+	}
+
+	Pantheon\_pantheon_render_notice( [
+		'type'    => 'info',
+		'heading' => __( 'Development Version', 'pantheon-systems' ),
+		'message' => $message,
+	] );
 }
 
 /**
@@ -144,6 +201,56 @@ function _pantheon_register_upstream_update_notice() {
 add_action( 'admin_init', '_pantheon_register_upstream_update_notice' );
 
 /**
+ * AJAX handler: record that the current user dismissed the update notice for the
+ * current available WordPress version. The version is resolved server-side so the
+ * client cannot influence which version the dismissal applies to.
+ *
+ * @return void
+ */
+function _pantheon_dismiss_update_notice() {
+	check_ajax_referer( PANTHEON_UPDATE_NOTICE_DISMISS_ACTION, 'nonce' );
+
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( 'not_logged_in', 403 );
+	}
+
+	$available_version = _pantheon_get_latest_wordpress_version();
+	if ( ! $available_version ) {
+		wp_send_json_error( 'no_available_version' );
+	}
+
+	update_user_meta( get_current_user_id(), PANTHEON_UPDATE_NOTICE_DISMISSED_META, $available_version );
+	wp_send_json_success();
+}
+add_action( 'wp_ajax_' . PANTHEON_UPDATE_NOTICE_DISMISS_ACTION, '_pantheon_dismiss_update_notice' );
+
+/**
+ * Enqueue the dismiss script and pass it the AJAX URL, action, and nonce.
+ *
+ * @return void
+ */
+function _pantheon_enqueue_update_notice_dismiss() {
+	wp_enqueue_script(
+		'pantheon-update-notice-dismiss',
+		plugin_dir_url( __FILE__ ) . 'assets/js/pantheon-update-notice-dismiss.js',
+		[],
+		PANTHEON_MU_PLUGIN_VERSION,
+		true
+	);
+
+	wp_localize_script(
+		'pantheon-update-notice-dismiss',
+		'pantheonUpdateNotice',
+		[
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'action'  => PANTHEON_UPDATE_NOTICE_DISMISS_ACTION,
+			'nonce'   => wp_create_nonce( PANTHEON_UPDATE_NOTICE_DISMISS_ACTION ),
+		]
+	);
+}
+add_action( 'admin_enqueue_scripts', '_pantheon_enqueue_update_notice_dismiss' );
+
+/**
  * Return zero updates and current time as last checked time.
  *
  * @return object
@@ -157,8 +264,10 @@ function _pantheon_disable_wp_updates(): object {
 	];
 }
 
-// In the Test and Live environments, clear plugin/theme update notifications.
-// Users must check a dev or multidev environment for updates.
+/**
+ * In the Test and Live environments, clear plugin/theme update notifications.
+ * Users must check a dev or multidev environment for updates.
+ */
 if ( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) && in_array( $_ENV['PANTHEON_ENVIRONMENT'], [ 'test', 'live' ], true ) && ( php_sapi_name() !== 'cli' ) ) {
 
 	// Disable Plugin Updates.
