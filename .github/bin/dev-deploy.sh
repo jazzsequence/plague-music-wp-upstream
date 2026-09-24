@@ -157,6 +157,29 @@ if [ "$BACKUP" == "Yes" ]; then
   [ "$NOTIFY" == "Yes" ] && slack_thread_update "$SITE" "$SLACK_BACKUP"
 fi
 
+# upstream:updates:apply requires the environment to be in git connection mode
+# and fails immediately (silently, since -q suppresses the error output) if the
+# environment is in SFTP mode. Check the mode first and flip it if needed. The
+# restore is registered via a trap (rather than just running after the apply
+# call) so the site still gets flipped back to SFTP even if the apply step
+# itself fails and set -e exits the script early.
+CONNECTION_MODE=$(terminus env:info $DEV --field=connection_mode)
+WAS_SFTP=false
+
+restore_connection_mode() {
+  if [ "$WAS_SFTP" == true ]; then
+    echo "Restoring ${DEV} to SFTP mode."
+    terminus --yes connection:set $DEV sftp
+  fi
+}
+
+if [ "$CONNECTION_MODE" == "sftp" ]; then
+  WAS_SFTP=true
+  trap restore_connection_mode EXIT
+  echo "Environment ${DEV} is in SFTP mode. Switching to Git mode to apply upstream updates."
+  terminus --yes connection:set $DEV git
+fi
+
 # Apply upstream updates
 terminus upstream:updates:apply $DEV --accept-upstream -q
 echo -e "Finished applying upstream updates for ${SITE} \n"
