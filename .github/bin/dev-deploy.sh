@@ -158,11 +158,7 @@ if [ "$BACKUP" == "Yes" ]; then
 fi
 
 # upstream:updates:apply requires the environment to be in git connection mode
-# and fails immediately (silently, since -q suppresses the error output) if the
-# environment is in SFTP mode. Check the mode first and flip it if needed. The
-# restore is registered via a trap (rather than just running after the apply
-# call) so the site still gets flipped back to SFTP even if the apply step
-# itself fails and set -e exits the script early.
+# Check the mode first and flip it if needed. 
 CONNECTION_MODE=$(terminus env:info $DEV --field=connection_mode)
 WAS_SFTP=false
 
